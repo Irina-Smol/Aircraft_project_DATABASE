@@ -33,3 +33,18 @@ SELECT fare_conditions, AVG(amount) FROM ticket_flights GROUP BY fare_conditions
 --  (3 строки)
 
 -- 4)
+UPDATE Aircrafts SET range = range * 1.3;
+-- UPDATE 9
+SELECT range FROM Aircrafts;
+--  Answer:
+------------
+--  14430
+--  10270
+--  3900
+--  7410
+--  7280
+--  8710
+--  5460
+--  1560
+--  3510
+--  (9 строк)
