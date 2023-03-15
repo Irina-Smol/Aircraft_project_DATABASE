@@ -15,6 +15,8 @@ PostgreSQL
 
 4) Увеличить энергоэффективность далеких самолетов на 30% за счет перехода на новое топливо (обновить БД, совершив изменения)
 
+** Запросы писать в psql (выгрузка архива: \i C:/Users/Desktop/sql/demo_small.sql
+
 ### ERD-диаграмма:
 
 ![1](https://sun9-29.userapi.com/impg/uCUGTW916PbPlwbhBAqQNyIfo6jzjiFGzUXtUg/VeVG1vByCYw.jpg?size=1088x617&quality=96&sign=af0f4af375c0ec010f4c8607105c2fc3&type=album)
