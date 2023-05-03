@@ -21,3 +21,5 @@
  
  SELECT a.aircraft_code, a.model, s.seat_no, s.fare_conditions FROM seats as s JOIN aircrafts as a ON s.aircraft_code = a.aircraft_code WHERE a.model ~ '^Cessna' ORDER BY s.seat_no;
  
+ SELECT a.aircraft_code, a.model, s.seat_no, s.fare_conditions FROM seats s, aircrafts a WHERE s.aircraft_code = a.aircraft_code AND a.model ~ '^Cessna' ORDER BY s.seat_no;
+ 
