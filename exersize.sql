@@ -92,4 +92,57 @@ GROUP BY r.min_sum, r.max_sum
 ORDER BY r.min_sum;
 
 
+--!В какие города можно улететь либо из Москвы, либо из Санкт-Петербурга
+
+SELECT arrival_city FROM routes WHERE departure_city = 'Москва' UNION SELECT arrival_city FROM routes WHERE departure_city = 'Санкт-Петербург' ORDER BY arrival_city;
+
+В--!В какие города можно улететь как из Москвы, так и из Санкт-Петербурга
+
+SELECT arrival_city FROM routes WHERE departure_city = 'Москва' INTERSECT SELECT arrival_city FROM routes WHERE departure_city = 'Санкт-Петербург' ORDER BY arrival_city;
+
+--! В какие города можно улететь из Санкт-Петербурга, но нельзя из Москвы?
+SELECT arrival_city FROM routes WHERE departure_city = 'Санкт-Петербург' EXCEPT SELECT arrival_city FROM routes WHERE departure_city = 'Москва' ORDER BY arrival_city;
+
+--!среднее значение:
+SELECT avg( total_amount ) FROM bookings;
+--!максимальное значение:
+SELECT max( total_amount ) FROM bookings;
+--!минимальное значение:
+SELECT min( total_amount ) FROM bookings;
+
+--!Рассчитаем количество маршрутов из Москвы:
+SELECT arrival_city, count( * ) FROM routes WHERE departure_city = 'Москва' GROUP BY arrival_city ORDER BY count DESC;
+
+--!Частота вылетов:
+SELECT array_length( days_of_week, 1 ) AS days_per_week, count( * ) AS num_routes FROM routes GROUP BY days_per_week ORDER BY 1 desc;
+
+--!Выведем названия городов, из которых в другие города существует не менее 15 маршрутов
+SELECT departure_city, count( * ) FROM routes GROUP BY departure_city HAVING count( * ) >= 15 ORDER BY count DESC;
+
+--!Выведем города, в которых более одного аэропорта:
+SELECT city, count( * ) FROM airports GROUP BY city HAVING count( * ) > 1;
+
+SELECT b.book_ref, b.book_date, extract( 'month' from b.book_date ) AS month, extract( 'day' from b.book_date ) AS day, 
+count( * ) OVER ( PARTITION BY date_trunc( 'month', b.book_date ) ORDER BY b.book_date ) AS count FROM ticket_flights tf JOIN tickets t 
+ON tf.ticket_no = t.ticket_no JOIN bookings b ON t.book_ref = b.book_ref WHERE tf.flight_id = 1 ORDER BY b.book_date;
+
+count( * ) OVER ( PARTITION BY date_trunc( 'month', b.book_date ) ORDER BY b.book_date ) AS coun
+
+SELECT airport_name, city, timezone, latitude,
+first_value( latitude ) OVER tz AS first_in_timezone,
+latitude - first_value( latitude ) OVER tz AS delta,
+rank() OVER tz
+FROM airports
+WHERE timezone IN ( 'Asia/Irkutsk', 'Asia/Krasnoyarsk' )
+WINDOW tz AS ( PARTITION BY timezone ORDER BY latitude DESC )
+ORDER BY timezone, rank;
+
+SELECT airport_name, city, timezone, latitude,
+first_value( latitude ) OVER tz AS first_in_timezone,
+latitude - first_value( latitude ) OVER tz AS delta,
+rank() OVER tz
+FROM airports
+WHERE timezone IN ( 'Asia/Irkutsk', 'Asia/Krasnoyarsk' )
+WINDOW tz AS ( PARTITION BY timezone ORDER BY latitude DESC )
+ORDER BY timezone, rank;
 
