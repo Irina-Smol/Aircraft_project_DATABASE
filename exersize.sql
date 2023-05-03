@@ -146,3 +146,76 @@ WHERE timezone IN ( 'Asia/Irkutsk', 'Asia/Krasnoyarsk' )
 WINDOW tz AS ( PARTITION BY timezone ORDER BY latitude DESC )
 ORDER BY timezone, rank;
 
+
+--!Подсчитать количество операций бронирования, в которых общая сумма превышает среднюю величину по всей выборок:
+SELECT count( * ) FROM bookings WHERE total_amount > ( SELECT avg( total_amount ) FROM bookings );
+--!При помощи некоррелируемого подзапроса выясним, какие маршруты существуют между городами часового пояса Asia/Krasnoyarsk:
+SELECT flight_no, departure_city, arrival_city FROM routes WHERE departure_city IN ( SELECT city FROM airports WHERE timezone ~ 'Krasnoyarsk' ) AND arrival_city 
+IN ( SELECT city FROM airports WHERE timezone ~ 'Krasnoyarsk' );
+
+--!При помощи скалярного подзапроса найдём самый западный и самый восточный аэропорт:
+SELECT airport_name, city, longitude FROM airports WHERE longitude IN ( ( SELECT max( longitude ) FROM airports ), ( SELECT min( longitude ) FROM airports ) ) 
+ORDER BY longitude;
+
+--!Выясним, в какие города нет рейсов из Москвы:
+SELECT DISTINCT a.city FROM airports a WHERE NOT EXISTS ( SELECT * FROM routes r WHERE r.departure_city = 'Москва' AND r.arrival_city = a.city ) 
+AND a.city <> 'Москва' ORDER BY city;
+
+--!Распределение мест разных классов в самолетах всех типов:
+SELECT a.model, ( SELECT count( * ) FROM seats s WHERE s.aircraft_code = a.aircraft_code AND s.fare_conditions = 'Business' ) 
+AS business, ( SELECT count( * ) FROM seats s WHERE s.aircraft_code = a.aircraft_code AND s.fare_conditions = 'Comfort' ) AS comfort, 
+( SELECT count( * ) FROM seats s WHERE s.aircraft_code = a.aircraft_code AND s.fare_conditions = 'Economy' ) AS economy FROM aircrafts a ORDER BY 1;
+
+SELECT s2.model, string_agg( s2.fare_conditions || ' (' || s2.num || ')', ', ' ) FROM ( SELECT a.model, s.fare_conditions, count( * ) AS num FROM aircrafts a 
+JOIN seats s ON a.aircraft_code = s.aircraft_code GROUP BY 1, 2 ORDER BY 1, 2 ) AS s2 
+
+--!Получить перечень аэропортов в тех городах, в которых больше одного аэропорта:
+SELECT aa.city, aa.airport_code, aa.airport_name FROM ( SELECT city, count( * ) FROM airports GROUP BY city HAVING count( * ) > 1 ) AS a JOIN airports 
+AS aa ON a.city = aa.city ORDER BY aa.city, aa.airport_name;
+
+--!Определить число маршрутов, исходящих из тех аэропортов, которые расположены восточнее географической долготы 150◦:
+ SELECT departure_airport, departure_city, count( * ) FROM routes GROUP BY departure_airport, departure_city HAVING departure_airport IN
+ ( SELECT airport_code FROM airports WHERE longitude > 150 ) ORDER BY count DESC;
+ 
+ --!Определим степень заполнения самолетов на всех рейсах:
+SELECT ts.flight_id, ts.flight_no, ts.scheduled_departure_local, ts.departure_city, ts.arrival_city, a.model, ts.fact_passengers, ts.total_seats, 
+round( ts.fact_passengers::numeric / ts.total_seats::numeric, 2 ) AS fraction FROM ( SELECT f.flight_id, f.flight_no, f.scheduled_departure_local, 
+f.departure_city, f.arrival_city, f.aircraft_code, count( tf.ticket_no )
+AS fact_passengers, ( SELECT count( s.seat_no ) FROM seats s WHERE s.aircraft_code = f.aircraft_code ) AS total_seats FROM flights_v f JOIN ticket_flights tf 
+ON f.flight_id = tf.flight_id WHERE f.status = 'Arrived' GROUP BY 1, 2, 3, 4, 5, 6 ) AS ts JOIN aircrafts AS a ON ts.aircraft_code = a.aircraft_code ORDER BY ts.scheduled_departure_local;
+GROUP BY s2.model ORDER BY s2.model;
+
+
+WITH ts AS
+( SELECT f.flight_id,
+f.flight_no,
+f.scheduled_departure_local,
+f.departure_city,
+f.arrival_city,
+f.aircraft_code,
+count( tf.ticket_no ) AS fact_passengers,
+( SELECT count( s.seat_no )
+FROM seats s
+WHERE s.aircraft_code = f.aircraft_code
+) AS total_seats
+FROM flights_v f
+JOIN ticket_flights tf ON f.flight_id = tf.flight_id
+WHERE f.status = 'Arrived'
+GROUP BY 1, 2, 3, 4, 5, 6
+)
+SELECT ts.flight_id,
+ts.flight_no,
+ts.scheduled_departure_local,
+ts.departure_city,
+ts.arrival_city,
+a.model,
+ts.fact_passengers,
+ts.total_seats,
+round( ts.fact_passengers::numeric /
+ts.total_seats::numeric, 2 ) AS fraction
+FROM ts
+JOIN aircrafts AS a ON ts.aircraft_code = a.aircraft_code
+ORDER BY ts.scheduled_departure_local;
+
+--!Диапазоны сумм бронирований с помощью рекурсивного общего табличного выражения: 
+WITH RECURSIVE ranges ( min_sum, max_sum ) AS ( VALUES ( 0, 100000 ) UNION ALL SELECT min_sum + 100000, max_sum + 100000 FROM ranges WHERE max_sum < ( SELECT max( total_amount ) FROM bookings ) ) SELECT * FROM ranges;
