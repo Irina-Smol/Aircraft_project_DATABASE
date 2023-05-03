@@ -38,3 +38,14 @@ FROM routes r
 JOIN aircrafts a ON r.aircraft_code = a.aircraft_code
 GROUP BY 1, 2
 ORDER BY 3 DESC;
+
+SELECT a.aircraft_code AS a_code,
+a.model,
+r.aircraft_code AS r_code,
+count( r.aircraft_code ) AS num_routes
+FROM aircrafts a
+LEFT OUTER JOIN routes r ON r.aircraft_code = a.aircraft_code
+GROUP BY 1, 2, 3
+ORDER BY 4 DESC;
+
+SELECT count( * ) FROM ( ticket_flights t JOIN flights f ON t.flight_id = f.flight_id ) LEFT OUTER JOIN boarding_passes b ON t.ticket_no = b.ticket_no AND t.flight_id = b.flight_id WHERE f.actual_departure IS NOT NULL AND b.flight_id IS NULL;
