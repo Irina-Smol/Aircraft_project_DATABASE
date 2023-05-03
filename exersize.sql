@@ -19,3 +19,5 @@
  SELECT * FROM aircrafts WHERE model NOT LIKE 'Airbus%' AND model NOT LIKE 'Boeing%';
  
  
+ SELECT a.aircraft_code, a.model, s.seat_no, s.fare_conditions FROM seats as s JOIN aircrafts as a ON s.aircraft_code = a.aircraft_code WHERE a.model ~ '^Cessna' ORDER BY s.seat_no;
+ 
