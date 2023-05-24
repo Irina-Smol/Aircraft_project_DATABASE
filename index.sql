@@ -96,3 +96,54 @@ demo=# SELECT count(*) FROM tickets WHERE passenger_name = 'IVAN IVANOV';
 
 
 Время: 0,674 мс
+
+demo=# DROP INDEX passenger_name;
+DROP INDEX
+Время: 7,483 мс
+
+CREATE INDEX ticket_book_ref_test_key ON tickets (book_ref);
+CREATE INDEX
+Время: 1840,692 мс (00:01,841)
+demo=# SELECT * FROM tickets ORDER BY book_ref LIMIT 5;
+   ticket_no   | book_ref | passenger_id |  passenger_name  |                                contact_data
+---------------+----------+--------------+------------------+----------------------------------------------------------------------------
+ 0005435838975 | 00000F   | 1708 262537  | ANNA ANTONOVA    | {"email": "annaantonova-19021973@postgrespro.ru", "phone": "+70938049942"}
+ 0005432527326 | 000012   | 9091 269355  | TAMARA ZAYCEVA   | {"email": "tamarazayceva-1971@postgrespro.ru", "phone": "+70749401734"}
+ 0005432293273 | 000068   | 5895 674437  | TATYANA PETROVA  | {"email": "t_petrova1970@postgrespro.ru", "phone": "+70886117503"}
+ 0005435545944 | 000181   | 6799 285573  | ALEKSANDR ZHUKOV | {"email": "aleksandrzhukov111972@postgrespro.ru", "phone": "+70411811316"}
+ 0005435545945 | 000181   | 0929 739492  | EVGENIYA KARPOVA | {"email": "karpovaevgeniya.1985@postgrespro.ru", "phone": "+70669289906"}
+(5 строк)
+
+
+Время: 1,024 мс
+
+
+demo=# SELECT * FROM bookings WHERE total_amount > 1000000 ORDER BY book_date DESC;
+ book_ref |       book_date        | total_amount
+----------+------------------------+--------------
+ D7E9AA   | 2016-10-06 04:29:00+03 |   1062800.00
+ EF479E   | 2016-09-30 14:58:00+03 |   1035100.00
+ 3AC131   | 2016-09-28 00:06:00+03 |   1087100.00
+ 3B54BB   | 2016-09-02 16:08:00+03 |   1204500.00
+ 65A6EA   | 2016-08-31 05:28:00+03 |   1065600.00
+(5 строк)
+
+
+Время: 56,828 мс
+
+demo=# CREATE INDEX bookings_book_date_part_key ON bookings (book_date) WHERE total_amount > 1000000;
+CREATE INDEX
+Время: 73,696 мс
+
+demo=# CREATE INDEX bookings_book_date_part_key ON bookings (book_date) WHERE total_amount > 1000000;
+CREATE INDEX
+Время: 73,696 мс
+demo=# SELECT * FROM bookings WHERE total_amount > 1100000;
+ book_ref |       book_date        | total_amount
+----------+------------------------+--------------
+ 3B54BB   | 2016-09-02 16:08:00+03 |   1204500.00
+(1 строка)
+
+
+Время: 1,048 мс
+
