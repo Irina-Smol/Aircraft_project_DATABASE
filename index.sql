@@ -65,3 +65,34 @@ demo=# SELECT count(*) FROM tickets WHERE passenger_name = 'Ivan Ivanov';
 
 
 Время: 75,963 мс
+
+
+demo=# CREATE INDEX passenger_name ON tickets (passenger_name);
+CREATE INDEX
+Время: 1536,985 мс (00:01,537)
+demo=# \d tickets
+                                   Таблица "bookings.tickets"
+    Столбец     |          Тип          | Правило сортировки | Допустимость NULL | По умолчанию
+----------------+-----------------------+--------------------+-------------------+--------------
+ ticket_no      | character(13)         |                    | not null          |
+ book_ref       | character(6)          |                    | not null          |
+ passenger_id   | character varying(20) |                    | not null          |
+ passenger_name | text                  |                    | not null          |
+ contact_data   | jsonb                 |                    |                   |
+Индексы:
+    "tickets_pkey" PRIMARY KEY, btree (ticket_no)
+    "passenger_name" btree (passenger_name)
+Ограничения внешнего ключа:
+    "tickets_book_ref_fkey" FOREIGN KEY (book_ref) REFERENCES bookings(book_ref)
+Ссылки извне:
+    TABLE "ticket_flights" CONSTRAINT "ticket_flights_ticket_no_fkey" FOREIGN KEY (ticket_no) REFERENCES tickets(ticket_no)
+
+
+demo=# SELECT count(*) FROM tickets WHERE passenger_name = 'IVAN IVANOV';
+ count
+-------
+   200
+(1 строка)
+
+
+Время: 0,674 мс
